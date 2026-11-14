@@ -1,0 +1,13 @@
+# Claves privadas (NUNCA se suben)
+.env
+
+# Entorno virtual y Python
+.venv/
+__pycache__/
+*.pyc
+
+# Config de PyCharm (opcional, pero lo llevamos por si acaso)
+.idea/
+
+# Resultados de tests locales
+tests/results/*.json
