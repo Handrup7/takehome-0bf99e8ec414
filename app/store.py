@@ -189,6 +189,15 @@ class Store:
                  status, response_message, proposal_id, trace_id, _now()),
             )
 
+    def list_messages(self, conversation_id: str) -> list[dict]:
+        """Mensajes de una conversación, del más antiguo al más reciente."""
+        with self._conn() as conn:
+            rows = conn.execute(
+                "SELECT * FROM messages WHERE conversation_id = ? ORDER BY id",
+                (conversation_id,),
+            ).fetchall()
+        return [dict(r) for r in rows]
+
     # ------------------------------------------------------------- proposals
     def add_proposal(
         self,
