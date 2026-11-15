@@ -9,8 +9,8 @@
 Reglas del contrato que gobiernan este módulo:
 
 - La aprobación cubre estancia+hora+fee+versión de la política y se
-  invalida si cambió: se RE-COMPROBAN estancia y disponibilidad justo
-  antes del `POST /changes`.
+  invalida si cambió: se RE-COMPROBAN estancia, disponibilidad y política
+  vigente justo antes del `POST /changes`.
 - Tras una escritura incierta, un 404 o un 503 en la consulta de la
   operación NO bastan para declarar fracaso: se conserva
   `pending_verification` y se devuelve 202. Nunca se hace otra escritura
@@ -26,6 +26,7 @@ from fastapi import APIRouter, Header, HTTPException, Response
 from starlette.concurrency import run_in_threadpool
 
 from .auth import Identity, resolve_identity
+from .policies import NoActivePolicy, resolve_policy
 from .reservations import ReservationClientError, ReservationsClient
 from .store import Store, store as local_store
 
@@ -190,7 +191,32 @@ def _approve(
             "receipt": None,
         }
 
-    # 3) Ejecutar: `processing` y luego la escritura con la clave estable.
+    # 3) Re-comprobar la política vigente (el corpus puede haber cambiado
+    #    entre la solicitud y la aprobación; la aprobación cubre el
+    #    importe y la versión de la política).
+    try:
+        current = resolve_policy(proposal["hotel_id"])
+    except NoActivePolicy:
+        current = None
+    if (
+        current is None
+        or current.status != "ok"
+        or (
+            current.document["document_id"],
+            current.document["version"],
+        )
+        != (proposal["policy_document_id"], proposal["policy_version"])
+    ):
+        store.set_proposal_status(pid, "stale")
+        return 409, {
+            "proposal_id": pid,
+            "status": "stale",
+            "message": "La política vigente cambió desde la solicitud; la "
+                       "propuesta quedó obsoleta.",
+            "receipt": None,
+        }
+
+    # 4) Ejecutar: `processing` y luego la escritura con la clave estable.
     store.set_proposal_status(pid, "processing")
     try:
         receipt = reservations.apply_change(

@@ -110,8 +110,32 @@ remoto) y termina imprimiendo un resumen `PASS/FAIL`.
 
 ### Resultados de los casos públicos (P01–P10)
 
-> Pendiente: se completará esta sección con la batería de tests automatizados
-> (`pytest`) sobre `data/casos-publicos.jsonl` y sus resultados guardados.
+Los 10 grupos de casos de `data/casos-publicos.jsonl` están cubiertos por
+17 tests en `tests/test_casos_publicos.py`. Se ejecutan con
+`scripts/run_tests_publicos.ps1`, que hace 8 pasadas de `pytest` (una por
+escenario, porque los escenarios se congelan al arrancar la app) y regenera
+los resultados en
+[`docs/resultados-casos-publicos.md`](docs/resultados-casos-publicos.md):
+
+```
+powershell -ExecutionPolicy Bypass -File scripts\run_tests_publicos.ps1
+```
+
+**Estado: VERDE — 17/17 tests, 0 fallos** (cada test pasa en la pasada cuyo
+escenario necesita; en la pasada normal los de escenario se saltan solos).
+
+| Caso | Pasada(s) | Tests |
+| --- | --- | --- |
+| P01 Datos incompletos y contexto | A | 1 |
+| P02 Camino completo e inglés | A | 1 |
+| P03 Habitación sin disponibilidad | A | 1 |
+| P04 Autoridad y contradicción | A | 2 (incl. variante de conflicto) |
+| P05 Inyección en mensaje | A | 1 |
+| P06 Aislamiento y rol | A | 1 |
+| P07 Duplicados y carrera | A | 1 |
+| P08 Resultado incierto y reinicio | B, C | 2 (incl. variante 503 temporal) |
+| P09 Propuesta obsoleta | A, D | 2 (incl. variante de bump de corpus) |
+| P10 Faltas de la IA simulada | A, E1–E4 | 5 (4 escenarios de IA + rechazar-para-aprobar) |
 
 ## Estructura del proyecto
 
@@ -132,19 +156,20 @@ app/
 ├── proposals.py       # GET /api/proposals, approve/reject/reconcile
 ├── conversations.py   # GET /api/conversations/{id}: historial (+trazas p/ manager)
 └── static/            # vistas web demo: elegir sesión, huésped, responsable
+tests/                 # batería de tests P01–P10 (pytest) + conftest
+docs/                  # resultados generados (resultados-casos-publicos.md)
 data/                  # datos del kit (identidades, documentos, estancias, casos)
-scripts/               # probes de verificación (no son la app)
+scripts/               # probes de verificación + run_tests_publicos.ps1
 requirements.txt       # FastAPI, uvicorn, httpx, python-dotenv, pytest
 ```
 
 ## Estado del proyecto
 
 - **Completado**: backend completo (identidad, mensajes, propuestas,
-  conversaciones, clientes remotos con idempotencia, persistencia) y vistas
-  web demo (`app/static/`), con probes propios en verde contra los servicios
-  reales.
-- **En curso**: batería de tests automatizados P01–P10 con resultados
-  guardados, `DECISIONES.md` y guion de la demo de 10 min.
+  conversaciones, clientes remotos con idempotencia, persistencia), vistas
+  web demo (`app/static/`), y batería de tests P01–P10 en verde con
+  resultados guardados (`docs/resultados-casos-publicos.md`).
+- **En curso**: `DECISIONES.md` y guion de la demo de 10 min.
 
 ## Tiempo empleado
 
