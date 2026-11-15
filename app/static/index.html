@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Late checkout — elegir sesión</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="narrow">
+    <h1>Late checkout</h1>
+    <p>
+      Prueba técnica WorkFactory. Elige una de las sesiones de demostración
+      del kit (las sesiones son ficticias y conocidas; el servidor decide
+      rol, hotel y reserva a partir del token).
+    </p>
+
+    <label for="session">Sesión de demostración</label>
+    <select id="session">
+      <option value="guest-a1">guest-a1 — huésped de STAY-A1 (hotel-alba)</option>
+      <option value="guest-a2">guest-a2 — huésped de STAY-A2 (hotel-alba)</option>
+      <option value="guest-b1">guest-b1 — huésped de STAY-B1 (hotel-alba-b)</option>
+      <option value="manager-a">manager-a — responsable de hotel-alba</option>
+      <option value="manager-b">manager-b — responsable de hotel-alba-b</option>
+    </select>
+
+    <p>
+      La vista enviará el token en la cabecera
+      <code>Authorization: Bearer &lt;token&gt;</code>.
+      Las claves de los servicios remotos nunca salen del servidor.
+    </p>
+
+    <button id="go" type="button">Entrar</button>
+    <p id="error" class="error" hidden></p>
+  </main>
+
+  <script>
+    "use strict";
+    const ROLES = {
+      "guest-a1": "guest", "guest-a2": "guest", "guest-b1": "guest",
+      "manager-a": "manager", "manager-b": "manager"
+    };
+    document.getElementById("go").addEventListener("click", () => {
+      const token = document.getElementById("session").value;
+      sessionStorage.setItem("session", token);
+      location.href = ROLES[token] === "manager" ? "manager.html" : "guest.html";
+    });
+  </script>
+</body>
+</html>

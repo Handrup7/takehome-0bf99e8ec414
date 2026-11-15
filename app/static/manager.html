@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Late checkout — responsable</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main>
+    <header class="page">
+      <h1>Responsable: <span id="who"></span></h1>
+      <a href="index.html">cambiar sesión</a>
+    </header>
+    <p id="error" class="error" hidden></p>
+
+    <section>
+      <h2>Propuestas de salida tardía</h2>
+      <button id="refresh" type="button" class="secondary">Recargar</button>
+      <div id="proposals"></div>
+    </section>
+
+    <section>
+      <h2>Conversaciones (con trazas internas)</h2>
+      <p>
+        Introduce un <code>conversation_id</code> para ver su historial y las
+        trazas del sistema (solo visibles para el responsable).
+      </p>
+      <form id="convForm" class="chat">
+        <input id="convId" type="text" placeholder="conv-guest-a1-…"
+               autocomplete="off">
+        <button type="submit" class="secondary">Ver</button>
+      </form>
+      <div id="convResult"></div>
+    </section>
+  </main>
+
+  <script>
+    "use strict";
+    const MANAGERS = { "manager-a": true, "manager-b": true };
+    const token = sessionStorage.getItem("session");
+    if (!token || !MANAGERS[token]) location.href = "index.html";
+    const headers = { "Authorization": "Bearer " + token };
+    const $ = (id) => document.getElementById(id);
+    const esc = (s) => String(s ?? "").replace(/[&<>"']/g,
+      (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+    function showError(msg) { $("error").textContent = msg; $("error").hidden = false; }
+
+    async function api(path, options) {
+      const res = await fetch(path, { ...options, headers });
+      let body = null;
+      try { body = await res.json(); } catch (_) { /* sin cuerpo */ }
+      return { status: res.status, body };
+    }
+
+    function fmtTime(iso) {
+      return iso ? iso.replace("T", " ").replace(":00Z", " UTC") : "—";
+    }
+
+    async function act(proposalId, action) {
+      const btns = document.querySelectorAll(`[data-id="${proposalId}"] button`);
+      btns.forEach((b) => (b.disabled = true));
+      const { status, body } = await api(
+        "/api/proposals/" + proposalId + "/" + action, { method: "POST" });
+      const msg = body?.message || body?.error?.message || ("HTTP " + status);
+      const resultLine = document.createElement("p");
+      resultLine.className = "result-line" + (status >= 400 ? " error" : "");
+      resultLine.textContent =
+        status + " · " + (body?.status || "") + " — " + msg;
+      const card = document.querySelector('[data-id="' + proposalId + '"]');
+      if (card) card.appendChild(resultLine);
+      if (body?.receipt) {
+        const pre = document.createElement("pre");
+        pre.className = "receipt";
+        pre.textContent = JSON.stringify(body.receipt, null, 2);
+        card.appendChild(pre);
+      }
+      loadProposals(); // refresca estados tras la acción
+    }
+
+    function proposalCard(p) {
+      const card = document.createElement("div");
+      card.className = "card";
+      card.dataset.id = p.id;
+      const canApprove = p.status === "awaiting_approval";
+      const canReconcile =
+        p.status === "pending_verification" || p.status === "processing";
+      const canReject =
+        ["awaiting_approval", "stale", "failed"].includes(p.status);
+      card.innerHTML =
+        '<div class="topline"><strong>' + esc(p.stay_id) + "</strong>" +
+        ' <span class="pill ' + esc(p.status) + '">' + esc(p.status) + "</span></div>" +
+        "<div>Salida actual: <b>" + esc(fmtTime(p.current_checkout_at)) + "</b>" +
+        " → solicitada: <b>" + esc(fmtTime(p.requested_checkout_at)) + "</b>" +
+        " · fee: <b>" + esc(p.fee_eur) + " EUR</b></div>" +
+        '<div class="mono">política: ' + esc(p.policy_document_id) +
+        " v" + esc(p.policy_version) +
+        " · clave: " + esc(p.operation_key) + "</div>" +
+        (p.evidence ? '<div class="quote">' + esc(p.evidence.quote) + "</div>" : "") +
+        '<div><button data-approve data-id="' + esc(p.id) + '"' +
+        (canApprove ? "" : " disabled") + ">Aprobar</button>" +
+        '<button data-reject data-id="' + esc(p.id) + '"' +
+        (canReject ? "" : " disabled") + ">Rechazar</button>" +
+        '<button data-reconcile data-id="' + esc(p.id) + '"' +
+        (canReconcile ? "" : " disabled") + ">Reconciliar</button></div>" +
+        (p.receipt ? "<pre class='receipt'>" +
+          esc(JSON.stringify(p.receipt, null, 2)) + "</pre>" : "");
+      card.querySelector("[data-approve]")
+        .addEventListener("click", () => act(p.id, "approve"));
+      card.querySelector("[data-reject]")
+        .addEventListener("click", () => act(p.id, "reject"));
+      card.querySelector("[data-reconcile]")
+        .addEventListener("click", () => act(p.id, "reconcile"));
+      return card;
+    }
+
+    async function loadProposals() {
+      const { status, body } = await api("/api/proposals");
+      if (status !== 200) { showError(body?.error?.message); return; }
+      const box = $("proposals");
+      box.innerHTML = "";
+      const list = body.proposals || [];
+      if (!list.length) {
+        box.innerHTML = "<p>No hay propuestas de tu hotel todavía.</p>";
+        return;
+      }
+      list.forEach((p) => box.appendChild(proposalCard(p)));
+    }
+
+    $("convForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const id = $("convId").value.trim();
+      if (!id) return;
+      const { status, body } = await api("/api/conversations/" + id);
+      const box = $("convResult");
+      if (status !== 200) {
+        box.innerHTML = '<p class="error">' +
+          esc(body?.error?.message || ("HTTP " + status)) + "</p>";
+        return;
+      }
+      let html =
+        "<div class='card'><div>" + esc(body.hotel_id) + " · " +
+        esc(body.stay_id) + " · estado actual: <b>" + esc(body.status || "—") +
+        "</b></div><ol>";
+      (body.messages || []).forEach((m) => {
+        html += "<li>" + esc(m.text) + "<br><small>" + esc(m.status) +
+          " — " + esc(m.message || "") + "</small></li>";
+      });
+      html += "</ol>";
+      const traces = body.traces || {};
+      const ids = Object.keys(traces);
+      if (ids.length) {
+        html += "<h3>Trazas internas</h3>";
+        ids.forEach((tid) => {
+          html += "<div class='card'><div class='mono'>trace: " + esc(tid) + "</div><ul>";
+          (traces[tid] || []).forEach((ev) => {
+            html += "<li>" + esc(ev.event) +
+              (ev.detail ? " — " + esc(ev.detail) : "") + "</li>";
+          });
+          html += "</ul></div>";
+        });
+      }
+      html += "</div>";
+      box.innerHTML = html;
+    });
+
+    $("refresh").addEventListener("click", loadProposals);
+    $("who").textContent = token;
+    loadProposals();
+  </script>
+</body>
+</html>

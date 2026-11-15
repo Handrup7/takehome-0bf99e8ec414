@@ -102,6 +102,7 @@ Cada módulo se verificó con un guion propio en `scripts/` contra los
 .venv\Scripts\python.exe scripts\reservations_probe.py
 .venv\Scripts\python.exe scripts\messages_probe.py       # 60/60
 .venv\Scripts\python.exe scripts\proposals_probe.py      # 95/95
+.venv\Scripts\python.exe scripts\static_probe.py         # 22/22
 ```
 
 Cada probe empieza con un reinicio limpio (base local + `POST /test/reset`
@@ -130,7 +131,7 @@ app/
 │                      # propuesta (reutilización/creación)
 ├── proposals.py       # GET /api/proposals, approve/reject/reconcile
 ├── conversations.py   # GET /api/conversations/{id}: historial (+trazas p/ manager)
-└── static/            # (en desarrollo) vistas web
+└── static/            # vistas web demo: elegir sesión, huésped, responsable
 data/                  # datos del kit (identidades, documentos, estancias, casos)
 scripts/               # probes de verificación (no son la app)
 requirements.txt       # FastAPI, uvicorn, httpx, python-dotenv, pytest
@@ -139,10 +140,11 @@ requirements.txt       # FastAPI, uvicorn, httpx, python-dotenv, pytest
 ## Estado del proyecto
 
 - **Completado**: backend completo (identidad, mensajes, propuestas,
-  conversaciones, clientes remotos con idempotencia, persistencia) con probes
-  propios en verde contra los servicios reales.
-- **En curso**: vistas web (`app/static/`), batería de tests automatizados
-  P01–P10 con resultados guardados, `DECISIONES.md` y guion de la demo de 10 min.
+  conversaciones, clientes remotos con idempotencia, persistencia) y vistas
+  web demo (`app/static/`), con probes propios en verde contra los servicios
+  reales.
+- **En curso**: batería de tests automatizados P01–P10 con resultados
+  guardados, `DECISIONES.md` y guion de la demo de 10 min.
 
 ## Tiempo empleado
 

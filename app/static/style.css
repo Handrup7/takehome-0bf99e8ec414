@@ -1,0 +1,164 @@
+/* Estilos simples de las 3 vistas demo (sin frameworks). */
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  margin: 0;
+  background: #f4f5f7;
+  color: #1c2430;
+  line-height: 1.5;
+}
+
+main {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 3rem;
+}
+
+main.narrow { max-width: 520px; }
+
+h1 { font-size: 1.4rem; }
+h2 { font-size: 1.1rem; margin-top: 1.5rem; }
+
+header.page {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  border-bottom: 1px solid #d5dae2;
+  padding-bottom: .5rem;
+  margin-bottom: 1rem;
+}
+
+header.page a { font-size: .9rem; }
+
+label { display: block; margin: .8rem 0 .3rem; font-weight: 600; }
+
+select, input[type="text"] {
+  width: 100%;
+  padding: .55rem .7rem;
+  border: 1px solid #c3c9d4;
+  border-radius: 6px;
+  font-size: 1rem;
+  background: #fff;
+}
+
+button {
+  margin: .6rem .4rem 0 0;
+  padding: .5rem .9rem;
+  border: 1px solid #2f6f4f;
+  border-radius: 6px;
+  background: #2f6f4f;
+  color: #fff;
+  font-size: .95rem;
+  cursor: pointer;
+}
+
+button.secondary {
+  background: #fff;
+  color: #2f6f4f;
+}
+
+button:disabled { opacity: .5; cursor: wait; }
+
+.error { color: #a32424; }
+
+/* Chat (vista huésped) */
+#log {
+  max-height: 340px;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid #d5dae2;
+  border-radius: 8px;
+  padding: .8rem;
+  margin: .8rem 0;
+}
+
+.bubble {
+  margin: .45rem 0;
+  padding: .5rem .8rem;
+  border-radius: 10px;
+  max-width: 85%;
+}
+
+.bubble.user {
+  background: #e3eefc;
+  margin-left: auto;
+}
+
+.bubble.app {
+  background: #eef2ee;
+}
+
+.bubble .meta {
+  display: block;
+  font-size: .75rem;
+  color: #5a6472;
+  margin-top: .2rem;
+}
+
+form.chat {
+  display: flex;
+  gap: .5rem;
+}
+
+form.chat input { flex: 1; }
+
+/* Historial */
+ol#history { padding-left: 1.2rem; }
+ol#history li { margin: .4rem 0; }
+ol#history small { color: #5a6472; }
+
+/* Panel de propuestas */
+.card {
+  background: #fff;
+  border: 1px solid #d5dae2;
+  border-radius: 8px;
+  padding: .8rem 1rem;
+  margin: .8rem 0;
+}
+
+.card .topline {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.pill {
+  display: inline-block;
+  padding: .15rem .55rem;
+  border-radius: 999px;
+  font-size: .78rem;
+  font-weight: 600;
+  background: #e7ebf0;
+  color: #39424e;
+}
+
+.pill.awaiting_approval { background: #fff3d6; color: #7a5b00; }
+.pill.processing, .pill.pending_verification { background: #e3eefc; color: #1d4f91; }
+.pill.completed { background: #d9f0e2; color: #1d5c37; }
+.pill.rejected, .pill.failed, .pill.stale { background: #fbe3e3; color: #8f1f1f; }
+
+.quote {
+  font-style: italic;
+  color: #454e5a;
+  border-left: 3px solid #c3c9d4;
+  padding-left: .6rem;
+  margin: .4rem 0;
+}
+
+.mono {
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: .82rem;
+  color: #454e5a;
+}
+
+pre.receipt {
+  background: #f0f2f5;
+  border-radius: 6px;
+  padding: .6rem .8rem;
+  font-size: .8rem;
+  overflow-x: auto;
+}
+
+.result-line { margin: .4rem 0; font-size: .92rem; }

@@ -4,8 +4,11 @@ Arranque:  python -m uvicorn app.main:app --reload
 Documentación automática: http://127.0.0.1:8000/docs
 """
 
+from pathlib import Path
+
 from fastapi import FastAPI, Header, HTTPException, Request
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 from .auth import Identity, resolve_identity
 from .conversations import router as conversations_router
@@ -51,3 +54,10 @@ def me(authorization: str | None = Header(default=None)) -> dict:
         "hotel_id": identity.hotel_id,
         "stay_id": identity.stay_id,
     }
+
+
+# Vista web demo: sirve app/static en la raíz (index.html, guest.html,
+# manager.html y style.css). Se añade al FINAL: las rutas API definidas
+# antes conservan la prioridad; solo lo que no coincide llega al montaje.
+STATIC_DIR = Path(__file__).resolve().parent / "static"
+app.mount("/", StaticFiles(directory=STATIC_DIR, html=True))
