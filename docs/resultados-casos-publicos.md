@@ -1,6 +1,6 @@
 # Resultados de los casos públicos (P01–P10)
 
-Generado por `scripts/run_tests_publicos.ps1` el 2026-11-15 12:23.
+Generado por `scripts/run_tests_publicos.ps1` el 2026-11-15 13:16.
 
 Entorno: platform win32 -- Python 3.13.17, pytest-9.2.0, pluggy-1.7.0 -- C:\Users\Handr\IA\OpenCode-Workspace\takehome-0bf99e8ec414\.venv\Scripts\python.exe
 
@@ -18,7 +18,7 @@ Regenerar: `powershell -ExecutionPolicy Bypass -File scripts\run_tests_publicos.
 
 - Entorno: `por defecto (normal)`
 - Comando: `python -m pytest tests -v`
-- Resumen de pytest: `================== 10 passed, 7 skipped, 1 warning in 18.31s ==================`
+- Resumen de pytest: `================== 10 passed, 7 skipped, 1 warning in 18.36s ==================`
 
 | Test | Resultado |
 | --- | --- |
@@ -44,7 +44,7 @@ Regenerar: `powershell -ExecutionPolicy Bypass -File scripts\run_tests_publicos.
 
 - Entorno: `RESERVATIONS_SCENARIO=response-lost`
 - Comando: `python -m pytest tests -k p08_respuesta_perdida -v`
-- Resumen de pytest: `================= 1 passed, 16 deselected, 1 warning in 2.28s =================`
+- Resumen de pytest: `================= 1 passed, 16 deselected, 1 warning in 2.33s =================`
 
 | Test | Resultado |
 | --- | --- |
@@ -54,7 +54,7 @@ Regenerar: `powershell -ExecutionPolicy Bypass -File scripts\run_tests_publicos.
 
 - Entorno: `RESERVATIONS_SCENARIO=transient-503`
 - Comando: `python -m pytest tests -k p08_variante -v`
-- Resumen de pytest: `================= 1 passed, 16 deselected, 1 warning in 1.98s =================`
+- Resumen de pytest: `================= 1 passed, 16 deselected, 1 warning in 1.90s =================`
 
 | Test | Resultado |
 | --- | --- |
@@ -64,7 +64,7 @@ Regenerar: `powershell -ExecutionPolicy Bypass -File scripts\run_tests_publicos.
 
 - Entorno: `RESERVATIONS_SCENARIO=stale-availability`
 - Comando: `python -m pytest tests -k p09_propuesta_obsoleta -v`
-- Resumen de pytest: `================= 1 passed, 16 deselected, 1 warning in 2.09s =================`
+- Resumen de pytest: `================= 1 passed, 16 deselected, 1 warning in 2.31s =================`
 
 | Test | Resultado |
 | --- | --- |
@@ -74,7 +74,7 @@ Regenerar: `powershell -ExecutionPolicy Bypass -File scripts\run_tests_publicos.
 
 - Entorno: `LLM_SCENARIO=invalid-time`
 - Comando: `python -m pytest tests -k p10_invalid_time -v`
-- Resumen de pytest: `================= 1 passed, 16 deselected, 1 warning in 0.89s =================`
+- Resumen de pytest: `================= 1 passed, 16 deselected, 1 warning in 0.78s =================`
 
 | Test | Resultado |
 | --- | --- |
@@ -84,7 +84,7 @@ Regenerar: `powershell -ExecutionPolicy Bypass -File scripts\run_tests_publicos.
 
 - Entorno: `LLM_SCENARIO=malformed-json`
 - Comando: `python -m pytest tests -k p10_malformed_json -v`
-- Resumen de pytest: `================= 1 passed, 16 deselected, 1 warning in 0.96s =================`
+- Resumen de pytest: `================= 1 passed, 16 deselected, 1 warning in 0.81s =================`
 
 | Test | Resultado |
 | --- | --- |
@@ -94,7 +94,7 @@ Regenerar: `powershell -ExecutionPolicy Bypass -File scripts\run_tests_publicos.
 
 - Entorno: `LLM_SCENARIO=privilege-fields`
 - Comando: `python -m pytest tests -k p10_privilege_fields -v`
-- Resumen de pytest: `================= 1 passed, 16 deselected, 1 warning in 1.21s =================`
+- Resumen de pytest: `================= 1 passed, 16 deselected, 1 warning in 1.23s =================`
 
 | Test | Resultado |
 | --- | --- |
@@ -104,7 +104,7 @@ Regenerar: `powershell -ExecutionPolicy Bypass -File scripts\run_tests_publicos.
 
 - Entorno: `LLM_SCENARIO=transient-503`
 - Comando: `python -m pytest tests -k p10_llm_transient_503 -v`
-- Resumen de pytest: `================= 1 passed, 16 deselected, 1 warning in 2.43s =================`
+- Resumen de pytest: `================= 1 passed, 16 deselected, 1 warning in 2.38s =================`
 
 | Test | Resultado |
 | --- | --- |

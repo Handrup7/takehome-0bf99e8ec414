@@ -161,15 +161,70 @@ docs/                  # resultados generados (resultados-casos-publicos.md)
 data/                  # datos del kit (identidades, documentos, estancias, casos)
 scripts/               # probes de verificación + run_tests_publicos.ps1
 requirements.txt       # FastAPI, uvicorn, httpx, python-dotenv, pytest
+DECISIONES.md          # 3 decisiones, ayuda de IA, 2 fallos reproducidos
 ```
+
+## Estados de la propuesta
+
+El esquema de componentes está arriba. Máquina de estados de la propuesta:
+
+```
+  El huésped pide la salida tardía
+                    │
+                    ▼
+          ┌────────────────────┐
+          │ awaiting_approval  │
+          └───┬──────────┬─────┘
+              │          │
+   responsable rechaza  responsable aprueba
+              │          │
+              ▼          │ revalida antes de escribir:
+     ┌──────────────┐    │ versión estancia → disponibilidad → política
+     │   rejected   │    ├─► 409 stale    (terminal; se puede volver a pedir)
+     │  (terminal)  │    ├─► failed       (terminal; p. ej. 409/500 al escribir)
+     └──────────────┘    │
+                         │
+   escritura incierta (respuesta perdida / ambigua)
+              │          │
+              ▼          ▼
+     ┌───────────────────────┐      ┌───────────┐
+     │ pending_verification  │ ───► │ completed │
+     └───────────────────────┘      └───────────┘
+                 reconcile           (cambio escrito UNA
+                 (consulta la        vez, operation_key
+                  operación)          estable)
+```
+
+- `stale`, `rejected` y `failed` son terminales: el responsable ya no puede
+  aprobarlas; el huésped puede pedir de nuevo (se crea una propuesta nueva).
+- `pending_verification` solo existe cuando una escritura no dio respuesta:
+  se resuelve con `reconcile`, nunca con una reescritura a ciegas.
+- `completed`: el cambio real se escribió exactamente una vez; si se vuelve
+  a aprobar se reproduce el receipt original (replay idempotente).
+
+## Límites del alcance
+
+- Un solo hotel por sesión: el token determina el hotel; un huésped
+  multi-hotel queda fuera de alcance.
+- SQLite local: pensado para el alcance de este proyecto (baja
+  concurrencia), no para producción de alta carga.
+- La IA y las reservas son mocks del kit; la app puede apuntar a servicios
+  reales cambiando el `.env` (mismos contratos).
+- Autenticación solo con los tokens de sesión del kit; sin HTTPS
+  (aplicación local en 127.0.0.1).
+- Al huésped no se le muestran registros internos, sesiones ajenas ni
+  credenciales (las trazas son solo para el responsable).
 
 ## Estado del proyecto
 
 - **Completado**: backend completo (identidad, mensajes, propuestas,
   conversaciones, clientes remotos con idempotencia, persistencia), vistas
-  web demo (`app/static/`), y batería de tests P01–P10 en verde con
-  resultados guardados (`docs/resultados-casos-publicos.md`).
-- **En curso**: `DECISIONES.md` y guion de la demo de 10 min.
+  web demo (`app/static/`), batería de tests P01–P10 en verde con
+  resultados guardados (`docs/resultados-casos-publicos.md`) y
+  [`DECISIONES.md`](DECISIONES.md) (3 decisiones, ayuda de IA y 2 fallos
+  reproducidos y corregidos).
+- La demo de 10 minutos está preparada y ensayada contra la app real
+  (recorrido huésped → responsable).
 
 ## Tiempo empleado
 
@@ -177,7 +232,10 @@ Máximo permitido: 8 h distribuidas en 5 días.
 
 | Día | Fecha | Tiempo del día | Acumulado | Trabajo |
 |---|---|---|---|---|
-| 1 | 2026-11-15 | 7 h 20 min | 7 h 20 min | Lectura del enunciado y del kit; módulos setup, auth, LLM, policies, store; repaso y cliente de reservas; flujo completo de `POST /api/messages`; `approve`/`reject`/`reconcile` + historial de conversación (8 commits, todos con probes en verde) |
+| 1 | 2026-11-15 (hasta 01:00) | 4 h 26 min | 4 h 26 min | Lectura del enunciado y del kit; módulos Setup, Auth, LLM, Policies, Store y Reservations; flujo completo de `POST /api/messages`; `approve`/`reject`/`reconcile` + historial (8 commits, todos con probes en verde) |
+| 2 | 2026-11-16 | 3 h 24 min | **7 h 50 min** | Demo web (vistas índice/huésped/responsable); tests públicos P01–P10 (17 en verde, resultados en `docs/`); `DECISIONES.md`, README final y commit final |
+
+**Total: 7 h 50 min — dentro del máximo de 8 h.**
 
 ### Desglose del día 1
 
@@ -188,16 +246,27 @@ Máximo permitido: 8 h distribuidas en 5 días.
 - **16:24** – Commit *Policies*: resolución de la política aprobada activa.
 - **16:34** – Commit *Store*: persistencia SQLite (conversaciones, mensajes,
   propuestas, trazas).
-- **16:53–19:16** – Repaso de lo escrito y commit *Reservations*: cliente del
-  servicio de reservas con idempotencia y manejo de escrituras inciertas.
+- **16:53–18:47** – Repaso interno de lo escrito (no cuenta como tiempo de
+  proyecto).
+- **18:47–19:16** – Commit *Reservations*: cliente del servicio de reservas
+  con idempotencia y manejo de escrituras inciertas.
 - Descanso.
-- **22:00–00:00** – Commit *Messages*: flujo completo de `POST /api/messages`
+- **23:00–00:00** – Commit *Messages*: flujo completo de `POST /api/messages`
   (identidad, dedupe, IA con historial, validación, política, disponibilidad,
   propuesta).
 - **00:00–01:00** – Commit *Proposals*: `approve`/`reject`/`reconcile` con
   revalidación y clave idempotente, + historial de conversación con trazas.
+- **Día 1: 2 h 26 min + 2 h 00 min = 4 h 26 min.**
 
-> Esta tabla se actualiza al terminar cada día de trabajo.
+### Desglose del día 2
+
+- **10:00–11:00** – Commit *Web demo*: vistas índice/huésped/responsable
+  (HTML+JS plano) y montaje de `static`.
+- **11:00–12:30** – Commit *Tests*: tests públicos P01–P10 (17 tests),
+  revalidación de política en `approve`, script `run_tests_publicos.ps1` y
+  resultados guardados en `docs/resultados-casos-publicos.md`.
+- **12:30–13:24** – `DECISIONES.md`, README final y commit final.
+- **Día 2: 3 h 24 min.**
 
 ## Uso de la IA
 
@@ -229,4 +298,5 @@ La IA me ayudó además a:
 
 El criterio final —qué se commitea, cómo se diseña la máquina de estados, cómo
 se gestionan las escrituras inciertas— es mío; la IA es el instrumento, no la
-fuente de las decisiones.
+fuente de las decisiones. Las decisiones y los fallos reproducidos están
+documentados en [`DECISIONES.md`](DECISIONES.md).
