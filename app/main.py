@@ -8,10 +8,14 @@ from fastapi import FastAPI, Header, HTTPException, Request
 from fastapi.responses import JSONResponse
 
 from .auth import Identity, resolve_identity
+from .conversations import router as conversations_router
 from .messages import router as messages_router
+from .proposals import router as proposals_router
 
 app = FastAPI(title="Late checkout")
 app.include_router(messages_router)
+app.include_router(proposals_router)
+app.include_router(conversations_router)
 
 
 @app.exception_handler(HTTPException)
